@@ -1,0 +1,803 @@
+<!doctype html>
+<html lang="es" data-lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Jazmín.IA · Edge AI en la Arduino UNO Q</title>
+<meta name="description" content="Jazmín.IA: sistema embebido de visión por computador que analiza indicadores faciales en tiempo real, 100 % dentro de una Arduino UNO Q, y acompaña el bienestar del usuario.">
+<meta property="og:title" content="Jazmín.IA · Edge AI en la Arduino UNO Q">
+<meta property="og:description" content="Visión por computador embebida para el bienestar: 13 Unidades de Acción, geometría facial y calibración personal, todo dentro de la placa.">
+<meta property="og:image" content="assets/pantalla-inicio-jazminia.webp">
+<link rel="icon" href="assets/logo-transparente-jazminia.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --verde:#174A33; --verde-2:#2E7D5B; --verde-3:#5FA582; --menta:#E4EEE6; --menta-2:#CFE2D5;
+  --crema:#F6F1EA; --crema-2:#EFE7DC; --card:#FFFFFF; --tinta:#1F2D26; --muted:#5B6A62; --linea:#E3DBCF;
+  --azul:#E3EEF3; --azul-t:#22566E; --durazno:#FBEADB; --durazno-t:#8A4513; --lila:#ECEAF6; --lila-t:#463F7E; --beige:#F1EEE8; --beige-t:#5E5A52;
+  --c-neutral:#2E9466; --c-sonrisa:#5E58A8; --c-enojo:#C2601F;
+  --led:#5AB2FF;
+  --r:22px; --sombra:0 10px 30px -18px rgba(23,74,51,.35);
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--crema);color:var(--tinta);font:17px/1.6 Nunito,system-ui,sans-serif;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+html[data-lang="es"] .en, html[data-lang="en"] .es{display:none!important}
+h1,h2,h3,h4{font-family:Fredoka,Nunito,sans-serif;color:var(--verde);line-height:1.15;margin:0 0 .5em}
+h2{font-size:clamp(30px,4.2vw,46px);font-weight:700}
+h3{font-size:22px;font-weight:600}
+p{margin:0 0 1em}
+a{color:var(--verde-2)}
+img{max-width:100%;display:block}
+.wrap{max-width:1180px;margin:0 auto;padding:0 20px}
+section{padding:88px 0}
+.eyebrow{font-weight:800;letter-spacing:.14em;text-transform:uppercase;font-size:13px;color:var(--verde-2);margin-bottom:10px}
+.lead{font-size:19px;color:var(--muted);max-width:760px}
+.card{background:var(--card);border-radius:var(--r);box-shadow:var(--sombra);padding:26px}
+.chip{display:inline-flex;align-items:center;gap:6px;background:var(--card);border:1px solid var(--linea);border-radius:999px;padding:6px 14px;font-weight:700;font-size:14px;color:var(--verde)}
+.grid{display:grid;gap:20px}
+.g2{grid-template-columns:repeat(2,minmax(0,1fr))}
+.g3{grid-template-columns:repeat(3,minmax(0,1fr))}
+.g4{grid-template-columns:repeat(4,minmax(0,1fr))}
+.g5{grid-template-columns:repeat(5,minmax(0,1fr))}
+@media (max-width:900px){.g3,.g4,.g5{grid-template-columns:repeat(2,minmax(0,1fr))}.g2{grid-template-columns:1fr}}
+@media (max-width:560px){.g3,.g4,.g5{grid-template-columns:1fr}section{padding:64px 0}}
+
+/* ---------- nav ---------- */
+nav.top{position:sticky;top:0;z-index:50;background:rgba(246,241,234,.88);backdrop-filter:blur(10px);border-bottom:1px solid var(--linea)}
+nav.top .wrap{display:flex;align-items:center;gap:18px;height:66px}
+nav.top img{height:38px;width:auto}
+nav.top .links{display:flex;gap:18px;margin-left:auto;font-weight:700;font-size:15px}
+nav.top .links a{color:var(--tinta);text-decoration:none}
+nav.top .links a:hover{color:var(--verde-2)}
+.lang{display:flex;background:var(--card);border:1px solid var(--linea);border-radius:999px;padding:3px}
+.lang button{border:0;background:none;font:800 13px Nunito,system-ui,sans-serif;padding:6px 12px;border-radius:999px;cursor:pointer;color:var(--muted)}
+.lang button[aria-pressed="true"]{background:var(--verde);color:#fff}
+@media (max-width:900px){nav.top .links{display:none}.lang{margin-left:auto}}
+
+/* ---------- hero ---------- */
+.hero{padding:64px 0 40px;position:relative}
+.hero .wrap{display:grid;grid-template-columns:1.25fr .75fr;gap:40px;align-items:center}
+.hero h1{font-size:clamp(44px,7vw,84px);font-weight:700;margin-bottom:.15em;letter-spacing:-.01em}
+.hero h1 span.ia{color:var(--verde-2)}
+.hero .sub{font-family:Fredoka,Nunito,system-ui,sans-serif;font-size:clamp(20px,2.4vw,27px);color:var(--verde-2);font-weight:500;margin-bottom:18px}
+.hero .chips{display:flex;flex-wrap:wrap;gap:8px;margin:22px 0 28px}
+.btns{display:flex;flex-wrap:wrap;gap:12px}
+.btn{display:inline-flex;align-items:center;gap:8px;border-radius:999px;padding:14px 26px;font:700 17px Fredoka,Nunito,system-ui,sans-serif;text-decoration:none;border:0;cursor:pointer}
+.btn.p{background:var(--verde);color:#fff;box-shadow:0 5px 0 #0E3122}
+.btn.s{background:var(--card);color:var(--verde);box-shadow:0 5px 0 var(--crema-2)}
+.btn:active{transform:translateY(3px)}
+.hero-art{position:relative;justify-self:center;width:min(360px,80vw);aspect-ratio:.82}
+.hero-art .halo{position:absolute;inset:auto 2% 0 2%;aspect-ratio:1;border-radius:50%;background:radial-gradient(circle at 50% 40%,#fff 0,var(--menta) 55%,var(--menta-2) 100%)}
+.hero-art img.pj{position:absolute;left:50%;bottom:2%;transform:translateX(-50%);height:96%;width:auto;filter:drop-shadow(0 18px 18px rgba(23,74,51,.18));animation:flotar 5s ease-in-out infinite}
+.hero-art .burbuja{position:absolute;top:6%;right:-12%;background:#fff;border-radius:18px;padding:12px 16px;font-weight:700;color:var(--verde);box-shadow:var(--sombra);font-size:15px;max-width:200px}
+.hero-art .burbuja:after{content:"";position:absolute;left:18px;bottom:-9px;border:10px solid transparent;border-top-color:#fff;border-bottom:0}
+@keyframes flotar{50%{transform:translate(-50%,-10px)}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+@media (max-width:900px){.hero .wrap{grid-template-columns:1fr}.hero-art{order:-1;width:min(260px,70vw)}.hero-art .burbuja{right:-8%;top:0}}
+.res-grid{grid-template-columns:1.4fr 1fr}
+@media (max-width:900px){.res-grid{grid-template-columns:1fr}}
+details.tabla{overflow-x:auto}
+.stats{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:14px;margin-top:46px}
+.stat{background:var(--card);border-radius:18px;padding:18px 18px 16px;box-shadow:var(--sombra)}
+.stat b{display:block;font:700 clamp(26px,3vw,34px) Fredoka;color:var(--verde)}
+.stat span{font-size:14px;color:var(--muted);font-weight:600}
+@media (max-width:900px){.stats{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+/* ---------- problema ---------- */
+.ic{width:52px;height:52px;border-radius:16px;display:grid;place-items:center;margin-bottom:14px}
+.ic svg{width:28px;height:28px}
+
+/* ---------- pipeline ---------- */
+.pipe{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:12px;margin-top:36px;position:relative}
+.paso{background:var(--card);border-radius:18px;padding:18px 16px;box-shadow:var(--sombra);position:relative}
+.paso .n{width:34px;height:34px;border-radius:50%;background:var(--verde);color:#fff;display:grid;place-items:center;font:700 16px Fredoka,Nunito,system-ui,sans-serif;margin-bottom:10px}
+.paso h4{font-size:17px;margin-bottom:6px}
+.paso p{font-size:14px;color:var(--muted);margin:0}
+.paso:not(:last-child):after{content:"";position:absolute;right:-12px;top:34px;width:12px;height:2px;background:var(--verde-3)}
+.paso.dark{background:var(--verde)}.paso.dark h4{color:#fff}.paso.dark p{color:#CFE2D5}.paso.dark .n{background:#fff;color:var(--verde)}
+@media (max-width:1000px){.pipe{grid-template-columns:repeat(2,minmax(0,1fr))}.paso:after{display:none}}
+@media (max-width:560px){.pipe{grid-template-columns:1fr}}
+figure{margin:0}
+.fig{background:var(--card);border-radius:var(--r);padding:12px;box-shadow:var(--sombra);cursor:zoom-in}
+.fig img{border-radius:14px;width:100%}
+figcaption{font-size:14px;color:var(--muted);padding:10px 6px 2px;font-weight:600}
+
+/* ---------- demo ---------- */
+#demo{background:linear-gradient(180deg,var(--crema) 0,#fff 100%)}
+.exprs{display:flex;flex-wrap:wrap;gap:10px;margin:26px 0 26px}
+.exprs button{border:2px solid var(--linea);background:var(--card);border-radius:999px;padding:10px 18px;font:600 16px Fredoka,Nunito,system-ui,sans-serif;color:var(--verde);cursor:pointer;display:flex;gap:8px;align-items:center;transition:.2s}
+.exprs button:hover{border-color:var(--verde-3)}
+.exprs button[aria-pressed="true"]{background:var(--verde);border-color:var(--verde);color:#fff}
+.demo{display:grid;grid-template-columns:330px 1fr;gap:22px;align-items:start}
+@media (max-width:1000px){.demo{grid-template-columns:1fr}}
+.cara{background:var(--card);border-radius:var(--r);box-shadow:var(--sombra);padding:18px}
+.cara svg{width:100%;max-width:280px;margin:0 auto;height:auto;display:block}
+.cara svg *{transition:d .45s ease, ry .12s, transform .45s ease, opacity .3s}
+.cara h4{font-size:16px;margin:4px 0 12px}
+.medida{margin:12px 0}
+.medida .lbl{display:flex;justify-content:space-between;font-size:14px;font-weight:700}
+.medida .lbl em{font-style:normal;color:var(--muted);font-weight:600}
+.barra{position:relative;height:12px;border-radius:999px;background:var(--crema-2);margin-top:6px;overflow:visible}
+.barra i{position:absolute;top:0;bottom:0;border-radius:999px;background:var(--verde-2);transition:left .5s, width .5s, background .3s}
+.barra .umb{position:absolute;top:-5px;bottom:-5px;width:2px;background:var(--tinta);opacity:.55}
+.barra .cero{position:absolute;top:-2px;bottom:-2px;width:1px;background:#9AA59F}
+.pantalla-col{display:grid;gap:18px}
+.dispositivo{background:#1C1F1E;border-radius:26px;padding:14px;box-shadow:0 26px 50px -24px rgba(0,0,0,.5)}
+.dispositivo .scr{border-radius:12px;overflow:hidden;aspect-ratio:1024/600;background:#000;position:relative}
+.dispositivo .scr img{width:100%;height:100%;object-fit:cover;position:absolute;inset:0;transition:opacity .35s}
+.bajo{display:grid;grid-template-columns:auto 1fr;gap:18px;align-items:stretch}
+@media (max-width:640px){.bajo{grid-template-columns:1fr}}
+.placa{background:#0F4F5C;border-radius:16px;padding:14px 16px 12px;color:#D7F0F4;box-shadow:var(--sombra)}
+.placa small{display:block;font-weight:800;font-size:12px;letter-spacing:.1em;text-transform:uppercase;opacity:.8;margin-bottom:8px}
+.matriz{display:grid;grid-template-columns:repeat(13,14px);gap:5px;background:#0A2E35;padding:10px;border-radius:10px;width:max-content}
+.matriz b{width:14px;height:14px;border-radius:50%;background:#173F47;transition:background .25s, box-shadow .25s}
+.matriz b.on{background:var(--led);box-shadow:0 0 8px 2px rgba(90,178,255,.75)}
+@media (max-width:420px){.matriz{grid-template-columns:repeat(13,10px);gap:4px}.matriz b{width:10px;height:10px}}
+.placa .ledtxt{margin-top:8px;font-weight:700;font-size:14px}
+.porque{background:var(--card);border-radius:18px;box-shadow:var(--sombra);padding:18px 20px;border-left:6px solid var(--verde-2)}
+.porque h4{font-size:18px;margin-bottom:6px}
+.porque p{margin:0;font-size:15.5px}
+.porque .estado{display:inline-block;font:700 13px Nunito,system-ui,sans-serif;border-radius:999px;padding:3px 10px;margin-bottom:8px}
+
+/* ---------- recorrido ---------- */
+.recorrido{display:grid;grid-auto-flow:column;grid-auto-columns:min(420px,82vw);gap:18px;overflow-x:auto;scroll-snap-type:x mandatory;padding:8px 4px 24px;margin-top:30px}
+.recorrido figure{scroll-snap-align:start;background:var(--card);border-radius:20px;padding:10px;box-shadow:var(--sombra)}
+.recorrido img{border-radius:12px;aspect-ratio:1024/600;object-fit:cover;width:100%}
+.recorrido figcaption b{display:block;color:var(--verde);font:600 17px Fredoka,Nunito,system-ui,sans-serif}
+.colores{display:flex;flex-wrap:wrap;gap:10px;margin-top:10px}
+.colores > span{display:flex;align-items:center;gap:8px;font-weight:700;font-size:14px;background:var(--card);border-radius:999px;padding:6px 12px 6px 6px;border:1px solid var(--linea)}
+.colores > span i{width:22px;height:22px;border-radius:50%;border:1px solid rgba(0,0,0,.08)}
+
+/* ---------- reglas ---------- */
+.regla{display:flex;gap:14px;align-items:flex-start}
+.regla .k{flex:none;width:44px;height:44px;border-radius:14px;background:var(--menta);display:grid;place-items:center;font:700 20px Fredoka,Nunito,system-ui,sans-serif;color:var(--verde)}
+.formula{font-family:ui-monospace,Menlo,Consolas,monospace;background:var(--crema);border-radius:12px;padding:12px 14px;font-size:14.5px;overflow-x:auto;color:var(--verde)}
+
+/* ---------- modelo ---------- */
+.capas{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:18px 0}
+.capa{background:var(--menta);border-radius:12px;padding:10px 12px;font-weight:700;font-size:14px;color:var(--verde);text-align:center}
+.capa small{display:block;font-weight:600;color:var(--muted);font-size:12px}
+.capa.d{background:var(--verde);color:#fff}.capa.d small{color:#CFE2D5}
+.capa.o{background:var(--durazno);color:var(--durazno-t)}
+.flecha{color:var(--verde-3);font-weight:800}
+.dark-card{background:var(--verde);color:#fff;border-radius:var(--r);padding:26px;box-shadow:var(--sombra)}
+.dark-card h3{color:#fff}
+.dark-card .met{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:8px}
+.dark-card .met b{display:block;font:700 34px Fredoka,Nunito,system-ui,sans-serif}
+.dark-card .met span{color:#CFE2D5;font-size:14px;font-weight:600}
+
+/* ---------- resultados ---------- */
+.chart{background:var(--card);border-radius:var(--r);box-shadow:var(--sombra);padding:24px}
+.leyenda{display:flex;flex-wrap:wrap;gap:16px;font-size:14px;font-weight:700;margin-bottom:12px}
+.leyenda span{display:flex;align-items:center;gap:7px}
+.leyenda i{width:14px;height:14px;border-radius:4px}
+.plot{position:relative;height:300px;margin:0 0 0 38px;border-left:1px solid #D8D2C8;border-bottom:1px solid #9AA59F}
+.plot .gl{position:absolute;left:0;right:0;border-top:1px dashed #ECE6DC;font-size:12px;color:var(--muted)}
+.plot .gl span{position:absolute;left:-38px;top:-9px;width:32px;text-align:right}
+.grupos{position:absolute;inset:0;display:grid;grid-template-columns:repeat(3,1fr)}
+.grupo{display:flex;justify-content:center;align-items:flex-end;gap:2px;position:relative}
+.bar{width:min(46px,7vw);border-radius:4px 4px 0 0;position:relative;cursor:default;transition:filter .2s}
+.bar:hover,.bar:focus{filter:brightness(1.1);outline:none}
+.bar .v{position:absolute;top:-22px;left:50%;transform:translateX(-50%);font-size:12.5px;font-weight:800;color:var(--tinta);white-space:nowrap}
+.xl{display:grid;grid-template-columns:repeat(3,1fr);margin-left:38px;text-align:center;font-weight:700;font-size:14px;padding-top:10px}
+.xl small{display:block;color:var(--muted);font-weight:600}
+.tip{position:fixed;pointer-events:none;background:var(--tinta);color:#fff;font-size:13px;font-weight:700;border-radius:10px;padding:8px 10px;opacity:0;transition:opacity .15s;z-index:99}
+details.tabla{margin-top:14px;font-size:14px}
+details.tabla summary{cursor:pointer;font-weight:700;color:var(--verde-2)}
+table{border-collapse:collapse;width:100%;margin-top:10px;font-size:14px}
+th,td{padding:8px 10px;border-bottom:1px solid var(--linea);text-align:left}
+th{color:var(--verde)}
+.evol{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.evol .de,.evol .a{font:700 40px Fredoka,Nunito,system-ui,sans-serif}
+.evol .de{color:var(--c-enojo)} .evol .a{color:var(--c-neutral)}
+
+/* ---------- varios ---------- */
+.lista{padding-left:0;list-style:none;margin:0}
+.lista li{position:relative;padding-left:28px;margin:0 0 10px}
+.lista li:before{content:"";position:absolute;left:4px;top:9px;width:10px;height:10px;border-radius:50%;background:var(--verde-3)}
+.tag{display:inline-block;font:800 12px Nunito,system-ui,sans-serif;letter-spacing:.06em;text-transform:uppercase;border-radius:999px;padding:4px 10px;background:var(--menta);color:var(--verde)}
+.tag.pend{background:var(--durazno);color:var(--durazno-t)}
+footer{background:var(--verde);color:#DCEBE1;padding:56px 0 40px}
+footer h3{color:#fff}
+footer a{color:#fff}
+footer .cita{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:13px;background:rgba(255,255,255,.08);border-radius:12px;padding:14px;margin-top:10px;white-space:pre-wrap}
+dialog{border:0;border-radius:18px;padding:10px;max-width:min(1400px,96vw);background:#fff}
+dialog::backdrop{background:rgba(15,30,22,.75)}
+dialog img{border-radius:12px;max-height:86vh;width:auto;margin:auto}
+dialog button{position:absolute;top:14px;right:14px;border:0;background:#fff;border-radius:50%;width:38px;height:38px;font-size:20px;cursor:pointer;box-shadow:var(--sombra)}
+.reveal{opacity:0;transform:translateY(18px);transition:opacity .7s ease, transform .7s ease}
+.reveal.vis{opacity:1;transform:none}
+</style>
+</head>
+<body>
+
+<nav class="top">
+  <div class="wrap">
+    <a href="#inicio" aria-label="Jazmín.IA"><img src="assets/logo-transparente-jazminia.png" alt="Jazmín.IA"></a>
+    <div class="links">
+      <a href="#como"><span class="es">Cómo funciona</span><span class="en">How it works</span></a>
+      <a href="#demo"><span class="es">Pruébalo</span><span class="en">Try it</span></a>
+      <a href="#pantallas"><span class="es">Pantallas</span><span class="en">Screens</span></a>
+      <a href="#modelo"><span class="es">Modelo</span><span class="en">Model</span></a>
+      <a href="#hardware">Hardware</a>
+      <a href="#resultados"><span class="es">Resultados</span><span class="en">Results</span></a>
+    </div>
+    <div class="lang" role="group" aria-label="Idioma / Language">
+      <button type="button" data-set="es" aria-pressed="true">ES</button>
+      <button type="button" data-set="en" aria-pressed="false">EN</button>
+    </div>
+  </div>
+</nav>
+
+<!-- ================= HERO ================= -->
+<header class="hero" id="inicio">
+  <div class="wrap">
+    <div>
+      <div class="eyebrow"><span class="es">Edge AI · Ingeniería Mecatrónica · UAO</span><span class="en">Edge AI · Mechatronics Engineering · UAO</span></div>
+      <h1>Jazmín<span class="ia">.IA</span></h1>
+      <div class="sub">
+        <span class="es">Un sistema embebido de visión por computador que te acompaña mientras estudias o trabajas.</span>
+        <span class="en">An embedded computer vision system that keeps you company while you study or work.</span>
+      </div>
+      <p class="lead">
+        <span class="es">Observa tu rostro con una cámara, detecta en tiempo real señales de <b>tensión</b> y <b>cansancio</b> y te avisa con calma cuando conviene una pausa. Todo ocurre <b>dentro de una Arduino UNO Q</b>: sin nube, sin internet y sin guardar una sola imagen.</span>
+        <span class="en">It watches your face through a camera, detects signs of <b>tension</b> and <b>tiredness</b> in real time and gently tells you when a break would help. Everything runs <b>inside an Arduino UNO Q</b>: no cloud, no internet and not a single image stored.</span>
+      </p>
+      <div class="chips">
+        <span class="chip">🧠 13 Action Units</span>
+        <span class="chip">📐 <span class="es">Geometría facial</span><span class="en">Facial geometry</span></span>
+        <span class="chip">🔒 <span class="es">100&nbsp;% local</span><span class="en">100% on-device</span></span>
+        <span class="chip">🎓 WiML @ NeurIPS 2026 · Sydney</span>
+      </div>
+      <div class="btns">
+        <a class="btn p" href="#demo"><span class="es">Prueba la demo</span><span class="en">Try the demo</span> →</a>
+        <a class="btn s" href="#como"><span class="es">Ver cómo funciona</span><span class="en">See how it works</span></a>
+      </div>
+    </div>
+    <div class="hero-art" aria-hidden="true">
+      <div class="halo"></div>
+      <img class="pj" src="assets/personaje-transparente-jazminia.png" alt="">
+      <div class="burbuja"><span class="es">¡Hola! Soy Jazmín 🌼</span><span class="en">Hi! I'm Jazmín 🌼</span></div>
+    </div>
+  </div>
+  <div class="wrap">
+    <div class="stats">
+      <div class="stat"><b>468</b><span class="es">puntos del rostro por fotograma</span><span class="en">face landmarks per frame</span></div>
+      <div class="stat"><b>13 AUs</b><span class="es">detectadas por un modelo propio</span><span class="en">detected by our own model</span></div>
+      <div class="stat"><b>2,91 MB</b><span class="es">modelo int8 (−90&nbsp;% de tamaño)</span><span class="en">int8 model (−90% size)</span></div>
+      <div class="stat"><b>0</b><span class="es">imágenes guardadas: solo números</span><span class="en">images stored: numbers only</span></div>
+      <div class="stat"><b>≈ 92&nbsp;%</b><span class="es">acierto en vivo en la validación inicial</span><span class="en">live accuracy in initial validation</span></div>
+    </div>
+  </div>
+</header>
+
+<!-- ================= PROBLEMA ================= -->
+<section id="porque">
+  <div class="wrap">
+    <div class="eyebrow"><span class="es">El problema</span><span class="en">The problem</span></div>
+    <h2 class="reveal"><span class="es">Tu rendimiento dice cuánto rendiste, no cómo estabas</span><span class="en">Performance tells you how much you did, not how you felt</span></h2>
+    <p class="lead reveal"><span class="es">Programar, estudiar o responder una evaluación exige atención sostenida. El tiempo de respuesta o la tasa de error miden el resultado, pero llegan tarde: no avisan cuando el cansancio o la tensión ya están afectando a la persona.</span><span class="en">Coding, studying or taking a test demands sustained attention. Response time or error rate measure the outcome, but they arrive too late: they don't warn you when tiredness or tension is already affecting you.</span></p>
+    <div class="grid g3" style="margin-top:30px">
+      <div class="card reveal">
+        <div class="ic" style="background:var(--durazno)"><svg viewBox="0 0 24 24" fill="none" stroke="#8A4513" stroke-width="2" stroke-linecap="round"><path d="M3 15a9 9 0 0 1 18 0"/><path d="M12 15l4-5"/><circle cx="12" cy="15" r="1.4" fill="#8A4513"/></svg></div>
+        <h3><span class="es">El rostro habla</span><span class="en">The face speaks</span></h3>
+        <p><span class="es">El ceño fruncido, el parpadeo frecuente o los bostezos son señales visibles de carga y fatiga, y se pueden medir sin tocar a la persona.</span><span class="en">A frown, frequent blinking or yawning are visible signs of load and fatigue, and they can be measured without touching the person.</span></p>
+      </div>
+      <div class="card reveal">
+        <div class="ic" style="background:var(--lila)"><svg viewBox="0 0 24 24" fill="none" stroke="#463F7E" stroke-width="2" stroke-linecap="round"><path d="M7 18a5 5 0 1 1 1-9.9A6 6 0 0 1 19 10a4 4 0 0 1-1 8z"/><path d="M4 4l16 16"/></svg></div>
+        <h3><span class="es">Sin nube</span><span class="en">No cloud</span></h3>
+        <p><span class="es">La mayoría de sistemas de análisis facial corre en servidores: más costo, más latencia y tu cara viajando por internet.</span><span class="en">Most facial analysis systems run on servers: more cost, more latency and your face travelling across the internet.</span></p>
+      </div>
+      <div class="card reveal">
+        <div class="ic" style="background:var(--menta)"><svg viewBox="0 0 24 24" fill="none" stroke="#174A33" stroke-width="2" stroke-linecap="round"><path d="M12 21s-7-4.5-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 11c0 5.5-7 10-7 10z"/></svg></div>
+        <h3><span class="es">Apoyo, no diagnóstico</span><span class="en">Support, not diagnosis</span></h3>
+        <p><span class="es">Jazmín.IA no adivina emociones: describe movimientos del rostro (FACS) y te sugiere respirar o descansar. No es una herramienta clínica.</span><span class="en">Jazmín.IA doesn't guess emotions: it describes facial movements (FACS) and suggests breathing or resting. It is not a clinical tool.</span></p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= COMO FUNCIONA ================= -->
+<section id="como" style="background:#fff">
+  <div class="wrap">
+    <div class="eyebrow"><span class="es">Cómo funciona</span><span class="en">How it works</span></div>
+    <h2 class="reveal"><span class="es">De la cámara a la matriz de LED, en la misma placa</span><span class="en">From camera to LED matrix, on the same board</span></h2>
+    <p class="lead reveal"><span class="es">Cada fotograma recorre seis pasos. Las imágenes se descartan apenas se procesan: solo quedan medidas numéricas.</span><span class="en">Every frame goes through six steps. Images are discarded as soon as they are processed: only numeric measurements remain.</span></p>
+    <div class="pipe">
+      <div class="paso reveal"><div class="n">1</div><h4><span class="es">Cámara USB</span><span class="en">USB camera</span></h4><p><span class="es">Captura el rostro a ≈ 5,8 fotogramas por segundo.</span><span class="en">Captures the face at ≈ 5.8 frames per second.</span></p></div>
+      <div class="paso reveal"><div class="n">2</div><h4>MediaPipe Face Mesh</h4><p><span class="es">Ubica 468 puntos del rostro en 3D.</span><span class="en">Locates 468 3D face landmarks.</span></p></div>
+      <div class="paso reveal"><div class="n">3</div><h4><span class="es">Geometría + modelo</span><span class="en">Geometry + model</span></h4><p><span class="es">EAR, MAR, cejas y boca; y una red que estima 13 AUs cada 0,5 s.</span><span class="en">EAR, MAR, brows and mouth; plus a network estimating 13 AUs every 0.5 s.</span></p></div>
+      <div class="paso reveal"><div class="n">4</div><h4><span class="es">Calibración personal</span><span class="en">Personal calibration</span></h4><p><span class="es">10 s de cara neutral: cada persona se compara consigo misma.</span><span class="en">10 s of neutral face: each person is compared with themselves.</span></p></div>
+      <div class="paso dark reveal"><div class="n">5</div><h4><span class="es">Motor de señales</span><span class="en">Signal engine</span></h4><p><span class="es">Decide tensión, cansancio o bienestar con ventanas de tiempo e histéresis.</span><span class="en">Decides tension, tiredness or well-being with time windows and hysteresis.</span></p></div>
+      <div class="paso reveal"><div class="n">6</div><h4><span class="es">Retroalimentación</span><span class="en">Feedback</span></h4><p><span class="es">Matriz LED, pantalla táctil con Jazmín e informe al terminar.</span><span class="en">LED matrix, touchscreen with Jazmín and an end-of-session report.</span></p></div>
+    </div>
+    <div class="grid g2" style="margin-top:34px">
+      <figure class="fig reveal" data-zoom><img loading="lazy" src="assets/lamina1-arquitectura-jazminia.webp" alt="Arquitectura del sistema"><figcaption><span class="es">Todo el análisis ocurre dentro de la placa: el MPU Qualcomm analiza y el MCU STM32 dibuja en la matriz.</span><span class="en">All analysis happens inside the board: the Qualcomm MPU analyzes and the STM32 MCU draws on the matrix.</span></figcaption></figure>
+      <figure class="fig reveal" data-zoom><img loading="lazy" src="assets/lamina2-conexion-interna-jazminia.webp" alt="Conexión interna"><figcaption><span class="es">Tres programas que se hablan dentro de la placa (ver la sección de arquitectura).</span><span class="en">Three programs talking inside the board (see the architecture section).</span></figcaption></figure>
+    </div>
+  </div>
+</section>
+
+<!-- ================= DEMO ================= -->
+<section id="demo">
+  <div class="wrap">
+    <div class="eyebrow"><span class="es">Demo interactiva</span><span class="en">Interactive demo</span></div>
+    <h2 class="reveal"><span class="es">Cambia la expresión y mira cómo reacciona Jazmín</span><span class="en">Change the expression and watch Jazmín react</span></h2>
+    <p class="lead reveal"><span class="es">Elige un gesto. A la izquierda ves lo que mide el sistema; a la derecha, la pantalla real del modo producto y lo que muestra la matriz de LED de la placa.</span><span class="en">Pick a gesture. On the left you see what the system measures; on the right, the real product-mode screen and what the board's LED matrix shows.</span></p>
+    <div class="exprs" role="group" aria-label="Expresión">
+      <button type="button" data-e="calibrando" aria-pressed="false">⏳ <span class="es">Calibrando</span><span class="en">Calibrating</span></button>
+      <button type="button" data-e="neutral" aria-pressed="true">😐 Neutral</button>
+      <button type="button" data-e="sonrisa" aria-pressed="false">😊 <span class="es">Sonrisa</span><span class="en">Smile</span></button>
+      <button type="button" data-e="enojo" aria-pressed="false">😠 <span class="es">Ceño fruncido</span><span class="en">Frown</span></button>
+      <button type="button" data-e="cansancio" aria-pressed="false">🥱 <span class="es">Cansancio</span><span class="en">Tiredness</span></button>
+      <button type="button" data-e="noveo" aria-pressed="false">🙈 <span class="es">Sin rostro</span><span class="en">No face</span></button>
+    </div>
+    <div class="demo">
+      <div class="cara">
+        <h4><span class="es">Lo que ve el sistema</span><span class="en">What the system sees</span></h4>
+        <svg viewBox="0 0 200 210" role="img" aria-label="Rostro ilustrado con puntos faciales">
+          <g id="rostro">
+            <path d="M34 100 C26 14 174 14 166 100 L172 182 C150 196 50 196 28 182 Z" fill="#4A2E22"/>
+            <ellipse cx="100" cy="112" rx="55" ry="64" fill="#F2C6A4"/>
+            <path d="M42 96 C34 16 166 16 158 96 C150 72 132 60 112 58 C118 66 120 72 120 72 C104 62 84 60 70 64 C58 70 48 80 42 96 Z" fill="#4A2E22"/>
+            <ellipse cx="66" cy="128" rx="9" ry="5" fill="#F0A99A" opacity=".55"/>
+            <ellipse cx="134" cy="128" rx="9" ry="5" fill="#F0A99A" opacity=".55"/>
+            <path id="cejaI" d="M60 82 Q75 74 90 80" stroke="#3A2419" stroke-width="5" fill="none" stroke-linecap="round"/>
+            <path id="cejaD" d="M110 80 Q125 74 140 82" stroke="#3A2419" stroke-width="5" fill="none" stroke-linecap="round"/>
+            <ellipse id="ojoI" cx="76" cy="100" rx="10" ry="7" fill="#2B1A12"/>
+            <ellipse id="ojoD" cx="124" cy="100" rx="10" ry="7" fill="#2B1A12"/>
+            <path d="M100 104 Q97 118 100 122 Q104 123 106 121" stroke="#C9967A" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+            <path id="boca" d="M82 140 Q100 144 118 140 Q100 146 82 140 Z" fill="#B5544F" stroke="#8E3B37" stroke-width="2" stroke-linejoin="round"/>
+          </g>
+          <g id="puntos" fill="#2E9466">
+            <circle id="pCI1" cx="60" cy="82" r="2.6"/><circle id="pCI2" cx="90" cy="80" r="2.6"/>
+            <circle id="pCD1" cx="110" cy="80" r="2.6"/><circle id="pCD2" cx="140" cy="82" r="2.6"/>
+            <circle cx="66" cy="100" r="2.4"/><circle cx="86" cy="100" r="2.4"/><circle cx="114" cy="100" r="2.4"/><circle cx="134" cy="100" r="2.4"/>
+            <circle id="pBI" cx="82" cy="140" r="2.6"/><circle id="pBD" cx="118" cy="140" r="2.6"/>
+          </g>
+          <g id="noRostro" opacity="0"><rect x="0" y="0" width="200" height="210" fill="#F1EEE8"/><text x="100" y="112" text-anchor="middle" font-family="Fredoka" font-size="16" fill="#5E5A52">?</text></g>
+        </svg>
+        <div class="medida">
+          <div class="lbl"><span class="es">Cejas vs. tu neutral</span><span class="en">Brows vs. your neutral</span><em id="vCejas">0&nbsp;%</em></div>
+          <div class="barra" data-min="-15" data-max="5"><span class="cero"></span><span class="umb" title="−7&nbsp;%"></span><i id="bCejas"></i></div>
+        </div>
+        <div class="medida">
+          <div class="lbl"><span class="es">Ancho de boca vs. tu neutral</span><span class="en">Mouth width vs. your neutral</span><em id="vBoca">0&nbsp;%</em></div>
+          <div class="barra" data-min="-5" data-max="25"><span class="cero"></span><span class="umb" title="+8&nbsp;%"></span><i id="bBoca"></i></div>
+        </div>
+        <div class="medida">
+          <div class="lbl"><span class="es">Parpadeos por minuto</span><span class="en">Blinks per minute</span><em id="vParp">16</em></div>
+          <div class="barra" data-min="0" data-max="40"><span class="umb" title="24/min"></span><i id="bParp"></i></div>
+        </div>
+        <p style="font-size:13px;color:var(--muted);margin:10px 0 0"><span class="es">La raya negra marca el umbral de cada medida. Valores ilustrativos.</span><span class="en">The black tick marks each measure's threshold. Illustrative values.</span></p>
+      </div>
+      <div class="pantalla-col">
+        <div class="dispositivo"><div class="scr"><img id="scrA" src="assets/pantalla-bien-jazminia.webp" alt="Pantalla del modo producto"><img id="scrB" src="assets/pantalla-bien-jazminia.webp" alt="" style="opacity:0"></div></div>
+        <div class="bajo">
+          <div class="placa">
+            <small><span class="es">Matriz LED 8 × 13 · Arduino UNO Q</span><span class="en">8 × 13 LED matrix · Arduino UNO Q</span></small>
+            <div class="matriz" id="matriz" aria-label="Matriz LED"></div>
+            <div class="ledtxt" id="ledTxt"></div>
+          </div>
+          <div class="porque" id="porque">
+            <span class="estado" id="estTag"></span>
+            <h4 id="porqueT"></h4>
+            <p id="porqueP"></p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= PANTALLAS ================= -->
+<section id="pantallas" style="background:#fff">
+  <div class="wrap">
+    <div class="eyebrow"><span class="es">Modo producto</span><span class="en">Product mode</span></div>
+    <h2 class="reveal"><span class="es">Una sesión con Jazmín, pantalla por pantalla</span><span class="en">A session with Jazmín, screen by screen</span></h2>
+    <p class="lead reveal"><span class="es">Al encender la placa arranca sola en pantalla completa. No hay imagen de la cámara ni números: Jazmín da las indicaciones y el color de fondo cambia con el estado. Desliza para ver el recorrido.</span><span class="en">When the board powers on it starts by itself in full screen. There is no camera image and no numbers: Jazmín gives the instructions and the background color changes with the state. Swipe to follow the flow (the interface itself is in Spanish).</span></p>
+    <div class="colores">
+      <span><i style="background:var(--azul)"></i><span class="es">Calibrando</span><span class="en">Calibrating</span></span>
+      <span><i style="background:var(--menta)"></i><span class="es">Todo bien</span><span class="en">All good</span></span>
+      <span><i style="background:var(--durazno)"></i><span class="es">Tensión</span><span class="en">Tension</span></span>
+      <span><i style="background:var(--lila)"></i><span class="es">Cansancio</span><span class="en">Tiredness</span></span>
+      <span><i style="background:var(--beige)"></i><span class="es">No te veo</span><span class="en">Can't see you</span></span>
+    </div>
+    <div class="recorrido" id="recorrido"></div>
+  </div>
+</section>
+
+<!-- ================= GEOMETRIA ================= -->
+<section id="geometria">
+  <div class="wrap">
+    <div class="eyebrow"><span class="es">Geometría y calibración personal</span><span class="en">Geometry and personal calibration</span></div>
+    <h2 class="reveal"><span class="es">Las AUs alertan solo si la geometría las confirma</span><span class="en">AUs only trigger an alert if geometry confirms them</span></h2>
+    <p class="lead reveal"><span class="es">Todas las medidas se dividen entre la distancia entre los ojos (no cambian si te acercas o te alejas) y se comparan con tus propios 10 segundos de cara neutral. Un umbral igual para todos no funcionó: con una persona, el 32&nbsp;% de los fotogramas quedaba por debajo del umbral clásico de parpadeo con los ojos abiertos.</span><span class="en">Every measure is divided by the distance between the eyes (it doesn't change if you move closer or farther) and compared with your own 10 seconds of neutral face. A single threshold for everyone did not work: for one person, 32% of frames fell below the classic blink threshold with eyes open.</span></p>
+    <div class="grid g4" style="margin-top:28px">
+      <div class="card reveal"><div class="regla"><div class="k">👁</div><div><h3><span class="es">Parpadeo</span><span class="en">Blink</span></h3><p><span class="es">EAR bajo tu umbral personal entre 0,03 y 0,6 s, medido con el reloj.</span><span class="en">EAR below your personal threshold for 0.03–0.6 s, timed by the clock.</span></p></div></div></div>
+      <div class="card reveal"><div class="regla"><div class="k">🥱</div><div><h3><span class="es">Bostezo</span><span class="en">Yawn</span></h3><p><span class="es">MAR ≥ 1,8 × tu neutral durante ≥ 2 s, sin sonrisa ni ceño.</span><span class="en">MAR ≥ 1.8 × your neutral for ≥ 2 s, with no smile or frown.</span></p></div></div></div>
+      <div class="card reveal"><div class="regla"><div class="k">😠</div><div><h3><span class="es">Ceño</span><span class="en">Frown</span></h3><p><span class="es">Cejas ≥ 7&nbsp;% más bajas o juntas que la referencia adaptativa.</span><span class="en">Brows ≥ 7% lower or closer than the adaptive reference.</span></p></div></div></div>
+      <div class="card reveal"><div class="regla"><div class="k">😊</div><div><h3><span class="es">Sonrisa</span><span class="en">Smile</span></h3><p><span class="es">Boca ≥ 8&nbsp;% más ancha que en la calibración.</span><span class="en">Mouth ≥ 8% wider than during calibration.</span></p></div></div></div>
+    </div>
+    <div class="grid g2" style="margin-top:22px;align-items:start">
+      <div class="card reveal">
+        <h3><span class="es">La regla de tensión</span><span class="en">The tension rule</span></h3>
+        <ul class="lista">
+          <li><span class="es"><b>Tensión corroborada:</b> índice de AUs ≥ 1,20 en 20 s <b>y</b> ceño geométrico en ≥ 15&nbsp;% de los últimos 6 s, <b>o</b></span><span class="en"><b>Corroborated tension:</b> AU index ≥ 1.20 over 20 s <b>and</b> geometric frown in ≥ 15% of the last 6 s, <b>or</b></span></li>
+          <li><span class="es"><b>Ceño sostenido</b> en ≥ 40&nbsp;% de los últimos 6 s.</span><span class="en"><b>Sustained frown</b> in ≥ 40% of the last 6 s.</span></li>
+          <li><span class="es"><b>La sonrisa anula</b> la alerta (≥ 40&nbsp;% de 6 s), salvo que el ceño llegue al 50&nbsp;%.</span><span class="en"><b>A smile cancels</b> the alert (≥ 40% of 6 s), unless the frown reaches 50%.</span></li>
+          <li><span class="es"><b>Cansancio:</b> parpadeo ≥ 24/min junto con bostezos agrupados en el último minuto.</span><span class="en"><b>Tiredness:</b> blinking ≥ 24/min together with clustered yawns in the last minute.</span></li>
+          <li><span class="es"><b>Histéresis:</b> se apaga con umbrales más bajos; en una sesión de 388 s bajó los cambios de estado de 20 a 8.</span><span class="en"><b>Hysteresis:</b> it switches off at lower thresholds; in a 388 s session state changes dropped from 20 to 8.</span></li>
+        </ul>
+        <div class="formula">I = Σ w<sub>k</sub> · max(0, f<sub>k</sub> − f<sub>k</sub><sup>cal</sup>) + w<sub>12</sub> · f<sub>12</sub> &nbsp;&nbsp;(w<sub>12</sub> = −1,5)</div>
+        <p style="font-size:14px;color:var(--muted);margin-top:10px"><span class="es">Solo cuenta lo que activas por encima de tu propio neutral. AU07 pesa más porque es la AU más asociada al estrés percibido (Blasberg et al., 2023).</span><span class="en">Only what you activate above your own neutral counts. AU07 weighs most because it is the AU most associated with perceived stress (Blasberg et al., 2023).</span></p>
+      </div>
+      <figure class="fig reveal" data-zoom><img loading="lazy" src="assets/lamina4-aus-geometria-jazminia.webp" alt="AUs y geometría"><figcaption><span class="es">En una sesión etiquetada, las AUs del modelo se activaban casi igual en neutral, sonrisa y enojo; el ceño geométrico sí separaba el enojo.</span><span class="en">In a labeled session the model's AUs fired almost equally in neutral, smile and anger; the geometric frown did separate anger.</span></figcaption></figure>
+    </div>
+  </div>
+</section>
+
+<!-- ================= MODELO ================= -->
+<section id="modelo" style="background:#fff">
+  <div class="wrap">
+    <div class="eyebrow"><span class="es">Modelo de aprendizaje profundo</span><span class="en">Deep learning model</span></div>
+    <h2 class="reveal"><span class="es">Una imagen del rostro entra, 13 probabilidades de AU salen</span><span class="en">One face image in, 13 AU probabilities out</span></h2>
+    <p class="lead reveal"><span class="es">Una versión ligera de ADMME (Wang et al., 2023): en lugar de tres ramas con flujo óptico, una sola MobileNetV2 que trabaja sobre un fotograma y cabe en la placa.</span><span class="en">A lightweight take on ADMME (Wang et al., 2023): instead of three branches with optical flow, a single MobileNetV2 working on one frame that fits on the board.</span></p>
+    <div class="capas reveal">
+      <div class="capa o"><span class="es">Rostro</span><span class="en">Face</span><small>256 × 256 × 3</small></div><span class="flecha">→</span>
+      <div class="capa">MobileNetV2<small>ImageNet</small></div><span class="flecha">→</span>
+      <div class="capa">GAP<small>1280</small></div><span class="flecha">→</span>
+      <div class="capa">Dense + ReLU<small>256</small></div><span class="flecha">→</span>
+      <div class="capa">Dropout<small>0,3</small></div><span class="flecha">→</span>
+      <div class="capa d">Sigmoid<small>13 AUs</small></div>
+    </div>
+    <div class="grid g2" style="align-items:start">
+      <figure class="fig reveal" data-zoom><img loading="lazy" src="assets/lamina3-red-neuronal-jazminia.webp" alt="Arquitectura neuronal"><figcaption><span class="es">40 584 imágenes de CASME II y SAMM anotadas con Py-Feat · entrenamiento en dos fases.</span><span class="en">40,584 CASME II and SAMM images annotated with Py-Feat · two-phase training.</span></figcaption></figure>
+      <div class="grid" style="gap:18px">
+        <div class="dark-card reveal">
+          <h3><span class="es">Resultado en el conjunto de prueba</span><span class="en">Test-set results</span></h3>
+          <div class="met">
+            <div><b>0,872</b><span>AUC-ROC macro</span></div>
+            <div><b>0,706</b><span class="es">F1 macro (umbral por AU)</span><span class="en">macro F1 (per-AU threshold)</span></div>
+            <div><b>2,91 MB</b><span class="es">int8 (antes 30,06 MB)</span><span class="en">int8 (was 30.06 MB)</span></div>
+            <div><b>0,5 s</b><span class="es">una inferencia en la placa</span><span class="en">one inference on the board</span></div>
+          </div>
+        </div>
+        <div class="card reveal" style="border-left:6px solid var(--c-enojo)">
+          <h3><span class="es">Lo que aprendimos: desfase de dominio</span><span class="en">What we learned: domain shift</span></h3>
+          <p><span class="es">Con la cámara real, AU04, AU07, AU17 y AU24 se activaban casi siempre y la AU12 (sonrisa) casi nunca: en 47 s sonriendo, 0&nbsp;%. Los datos de laboratorio (microexpresiones, sin habla, cámaras de alta velocidad) están lejos de una persona que trabaja frente a una webcam. Por eso la decisión final se apoya en la geometría y el modelo actúa como apoyo.</span><span class="en">With the real camera, AU04, AU07, AU17 and AU24 fired almost always and AU12 (smile) almost never: 0% during 47 s of smiling. Lab data (micro-expressions, no speech, high-speed cameras) is far from a person working in front of a webcam. That's why the final decision relies on geometry, with the model as support.</span></p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= ARQUITECTURA ================= -->
+<section id="arquitectura">
+  <div class="wrap">
+    <div class="eyebrow"><span class="es">Software</span><span class="en">Software</span></div>
+    <h2 class="reveal"><span class="es">Tres programas que se hablan dentro de la placa</span><span class="en">Three programs talking inside the board</span></h2>
+    <div class="grid g3" style="margin-top:26px">
+      <div class="card reveal"><span class="tag">MPU · Python 3.11</span><h3 style="margin-top:12px">main-jazminia.py</h3><p><span class="es">Cámara, MediaPipe, TensorFlow Lite, motor de señales, grabación CSV e interfaz web con FastAPI.</span><span class="en">Camera, MediaPipe, TensorFlow Lite, signal engine, CSV logging and the FastAPI web interface.</span></p></div>
+      <div class="card reveal"><span class="tag">MPU · Python ≥ 3.13</span><h3 style="margin-top:12px">led_bridge_helper</h3><p><span class="es">Servidor HTTP mínimo en 127.0.0.1:8765 que traduce cada patrón a una llamada RPC con <code>arduino_app_bricks</code>.</span><span class="en">Tiny HTTP server on 127.0.0.1:8765 that turns each pattern into an RPC call with <code>arduino_app_bricks</code>.</span></p></div>
+      <div class="card reveal"><span class="tag">MCU · STM32U585</span><h3 style="margin-top:12px">matrix_bridge.ino</h3><p><span class="es"><code>Bridge.begin()</code> y cuatro funciones: alerta «!», corazón, carita feliz y apagar.</span><span class="en"><code>Bridge.begin()</code> and four functions: "!" alert, heart, smiley and off.</span></p></div>
+    </div>
+    <div class="card reveal" style="margin-top:20px;background:var(--durazno)">
+      <h3 style="color:var(--durazno-t)"><span class="es">¿Por qué dos procesos de Python?</span><span class="en">Why two Python processes?</span></h3>
+      <p style="margin:0"><span class="es">MediaPipe funciona hasta Python 3.12 y la librería oficial del Bridge de Arduino exige 3.13: no pueden convivir. Se hablan por HTTP local, sin salir a ninguna red, y si la matriz falla el análisis sigue y la conexión se reintenta cada 3 s.</span><span class="en">MediaPipe works up to Python 3.12 and Arduino's official Bridge library requires 3.13: they can't share one interpreter. They talk over local HTTP without touching any network, and if the matrix fails the analysis keeps running and reconnects every 3 s.</span></p>
+    </div>
+  </div>
+</section>
+
+<!-- ================= HARDWARE ================= -->
+<section id="hardware" style="background:#fff">
+  <div class="wrap">
+    <div class="eyebrow">Hardware</div>
+    <h2 class="reveal"><span class="es">Una placa, un cable, cero computadores externos</span><span class="en">One board, one cable, zero external computers</span></h2>
+    <div class="grid g2" style="margin-top:24px;align-items:start">
+      <figure class="fig reveal" data-zoom><img loading="lazy" src="assets/conexion-hardware-jazminia.webp" alt="Conexión del hardware"><figcaption><span class="es">Un concentrador USB-C reparte video, datos y energía hacia la placa con un solo cable.</span><span class="en">A USB-C hub carries video, data and power to the board through a single cable.</span></figcaption></figure>
+      <div>
+        <ul class="lista reveal">
+          <li><b>Arduino UNO Q (4 GB)</b> — <span class="es">MPU Qualcomm QRB2210 con Debian Linux (cuatro núcleos a 2,0 GHz) + MCU STM32U585 con la matriz LED 8 × 13.</span><span class="en">Qualcomm QRB2210 MPU running Debian Linux (quad-core 2.0 GHz) + STM32U585 MCU driving the 8 × 13 LED matrix.</span></li>
+          <li><b><span class="es">Cámara USB de pinza</span><span class="en">Clip-on USB camera</span></b> — <span class="es">sobre el monitor, centrada con la mirada.</span><span class="en">on top of the monitor, aligned with your gaze.</span></li>
+          <li><b><span class="es">Pantalla táctil de 7"</span><span class="en">7" touchscreen</span></b> — IPS 1024 × 600, HDMI.</li>
+          <li><b><span class="es">Concentrador USB-C</span><span class="en">USB-C hub</span></b> — HDMI, USB-A <span class="es">y entrada de carga PD</span><span class="en">and PD power input</span>.</li>
+          <li><b><span class="es">Cargador USB-C PD</span><span class="en">USB-C PD charger</span></b> — <span class="es">de pared, siempre conectado.</span><span class="en">wall charger, always connected.</span></li>
+        </ul>
+        <div class="card reveal" style="margin-top:14px">
+          <span class="tag pend"><span class="es">En diseño</span><span class="en">In design</span></span>
+          <h3 style="margin-top:10px"><span class="es">El dispositivo «Flor» 🌼</span><span class="en">The "Flor" device 🌼</span></h3>
+          <p style="margin:0"><span class="es">Una maceta de escritorio de ≈ 200 × 125 × 70 mm que guarda la placa y el hub, deja ver la matriz LED por una ventana y sostiene la pantalla inclinada 15°, rodeada de pétalos. Diseñada en OpenSCAD para imprimirse en PETG.</span><span class="en">A ≈ 200 × 125 × 70 mm desk pot that holds the board and hub, shows the LED matrix through a window and holds the screen tilted 15°, surrounded by petals. Designed in OpenSCAD to be printed in PETG.</span></p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= RESULTADOS ================= -->
+<section id="resultados">
+  <div class="wrap">
+    <div class="eyebrow"><span class="es">Resultados</span><span class="en">Results</span></div>
+    <h2 class="reveal"><span class="es">¿La alerta corresponde a lo que hace tu rostro?</span><span class="en">Does the alert match what your face is doing?</span></h2>
+    <p class="lead reveal"><span class="es">Los participantes hicieron expresiones guiadas mientras un supervisor las marcaba. Se compara, fotograma a fotograma, la etiqueta con la alerta que vio la persona en ese instante. Ninguna de estas sesiones se usó para ajustar umbrales.</span><span class="en">Participants made guided expressions while a supervisor labeled them. The label is compared, frame by frame, with the alert the person saw at that moment. None of these sessions were used to tune thresholds.</span></p>
+    <div class="grid g2 res-grid" style="margin-top:26px;align-items:start">
+      <div class="chart reveal">
+        <h3 style="font-size:19px"><span class="es">Acierto por expresión (%)</span><span class="en">Accuracy by expression (%)</span></h3>
+        <div class="leyenda" id="leyenda"></div>
+        <div class="plot" id="plot"></div>
+        <div class="xl" id="xl"></div>
+        <details class="tabla"><summary><span class="es">Ver como tabla</span><span class="en">View as table</span></summary><table id="tabla"></table></details>
+      </div>
+      <div class="grid" style="gap:18px">
+        <div class="card reveal">
+          <h3><span class="es">Del 18&nbsp;% al 92&nbsp;%</span><span class="en">From 18% to 92%</span></h3>
+          <div class="evol"><span class="de">18&nbsp;%</span><span style="font-size:28px">→</span><span class="a">92&nbsp;%</span></div>
+          <p style="margin:8px 0 0"><span class="es">El 30 de septiembre el sistema alertaba el 99–100&nbsp;% del tiempo y acertaba solo el 18&nbsp;% en neutral. Tras el ajuste iterativo (prueba real → diagnóstico → <i>replay</i> → verificación), la validación con sesiones nuevas llegó a 92,5&nbsp;% y 91,8&nbsp;%.</span><span class="en">On 30 September the system alerted 99–100% of the time and was right only 18% of the time in neutral. After iterative tuning (real test → diagnosis → replay → check), validation on new sessions reached 92.5% and 91.8%.</span></p>
+        </div>
+        <div class="card reveal">
+          <h3><span class="es">Uso natural: 30 min dando clase</span><span class="en">Natural use: 30 min teaching</span></h3>
+          <p style="margin:0"><span class="es">Alerta encendida solo el <b>0,5&nbsp;%</b> del tiempo, <b>0</b> bostezos falsos y 18,4 parpadeos por minuto, dentro del rango normal en reposo.</span><span class="en">Alert on only <b>0.5%</b> of the time, <b>0</b> false yawns and 18.4 blinks per minute, within the normal resting range.</span></p>
+        </div>
+      </div>
+    </div>
+    <div class="grid g2" style="margin-top:22px">
+      <div class="card reveal">
+        <h3><span class="es">Lo que aún falla</span><span class="en">What still fails</span></h3>
+        <ul class="lista">
+          <li><span class="es"><b>Enojos suaves:</b> si las cejas bajan menos del 7&nbsp;%, se detectan mal (70&nbsp;% fuertes vs. 53&nbsp;% suaves en el piloto).</span><span class="en"><b>Mild frowns:</b> if the brows drop less than 7% they are poorly detected (70% strong vs. 53% mild in the pilot).</span></li>
+          <li><span class="es"><b>Sonrisas que entrecierran los ojos</b> pueden leerse como ceño.</span><span class="en"><b>Smiles that squint the eyes</b> can be read as a frown.</span></li>
+          <li><span class="es"><b>Pausas neutrales:</b> el piloto las omitió por error (72&nbsp;%); al repetirlo con pausas se llegó a 90&nbsp;%.</span><span class="en"><b>Neutral pauses:</b> the pilot skipped them by mistake (72%); repeating it with pauses reached 90%.</span></li>
+        </ul>
+      </div>
+      <div class="card reveal">
+        <h3><span class="es">Tono de piel y luz</span><span class="en">Skin tone and lighting</span></h3>
+        <p><span class="es">En el piloto, el acierto medio fue 86&nbsp;% en tez blanca (3), 70&nbsp;% en trigueña (7) y 38&nbsp;% en el único participante de tez muy morena, que además estaba bajo luz cenital. Es solo descriptivo y no permite concluir una causa, pero es una alerta seria: por eso el sistema ahora mide la luz en cada fotograma y las próximas pruebas usarán la escala de Monk.</span><span class="en">In the pilot, mean accuracy was 86% for light skin (3), 70% for medium skin (7) and 38% for the only very dark-skinned participant, who was also under overhead light. It is only descriptive and cannot establish a cause, but it is a serious warning: the system now measures lighting on every frame and the next tests will use the Monk scale.</span></p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= PRIVACIDAD ================= -->
+<section id="privacidad" style="background:#fff">
+  <div class="wrap">
+    <div class="eyebrow"><span class="es">Privacidad y ética</span><span class="en">Privacy and ethics</span></div>
+    <h2 class="reveal"><span class="es">Tu cara no sale de la placa</span><span class="en">Your face never leaves the board</span></h2>
+    <div class="grid g4" style="margin-top:24px">
+      <div class="card reveal"><h3>🔒 <span class="es">Local</span><span class="en">Local</span></h3><p style="margin:0"><span class="es">Funciona sin internet; ningún dato viaja a la nube.</span><span class="en">Works offline; no data travels to the cloud.</span></p></div>
+      <div class="card reveal"><h3>🔢 <span class="es">Solo números</span><span class="en">Numbers only</span></h3><p style="margin:0"><span class="es">Se guardan 23 medidas por fotograma, nunca imágenes ni video.</span><span class="en">23 measurements per frame are stored, never images or video.</span></p></div>
+      <div class="card reveal"><h3>🏷 <span class="es">Anónimo</span><span class="en">Anonymous</span></h3><p style="margin:0"><span class="es">Cada participante se identifica con un código; el nombre solo se muestra en pantalla.</span><span class="en">Each participant is a code; the name is only shown on screen.</span></p></div>
+      <div class="card reveal"><h3>💚 <span class="es">Bienestar</span><span class="en">Well-being</span></h3><p style="margin:0"><span class="es">Es un apoyo, no un diagnóstico ni una herramienta de vigilancia.</span><span class="en">It's a support tool, not a diagnosis or a surveillance tool.</span></p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= PROXIMOS ================= -->
+<section id="siguiente">
+  <div class="wrap">
+    <div class="eyebrow"><span class="es">Estado del proyecto</span><span class="en">Project status</span></div>
+    <h2 class="reveal"><span class="es">Lo que sigue</span><span class="en">What's next</span></h2>
+    <div class="grid g3" style="margin-top:22px">
+      <div class="card reveal"><span class="tag"><span class="es">Listo</span><span class="en">Done</span></span><ul class="lista" style="margin-top:12px">
+        <li><span class="es">Sistema completo en la placa</span><span class="en">Full system on the board</span></li>
+        <li><span class="es">Modo producto y arranque automático</span><span class="en">Product mode and auto-start</span></li>
+        <li><span class="es">Validación inicial, piloto (11) y post-piloto</span><span class="en">Initial validation, pilot (11) and post-pilot</span></li>
+        <li><span class="es">Medición de la luz</span><span class="en">Lighting measurement</span></li></ul></div>
+      <div class="card reveal"><span class="tag pend"><span class="es">En curso</span><span class="en">In progress</span></span><ul class="lista" style="margin-top:12px">
+        <li><span class="es">Sesiones con tareas: aritmética y prueba de reacción (PVT-B)</span><span class="en">Task sessions: arithmetic and reaction test (PVT-B)</span></li>
+        <li><span class="es">Relación entre indicadores faciales y rendimiento</span><span class="en">Relation between facial indicators and performance</span></li>
+        <li><span class="es">Estudio de caso de una semana de uso real</span><span class="en">One-week real-use case study</span></li></ul></div>
+      <div class="card reveal"><span class="tag" style="background:var(--lila);color:var(--lila-t)"><span class="es">Futuro</span><span class="en">Future</span></span><ul class="lista" style="margin-top:12px">
+        <li><span class="es">Calibración con sonrisa y ceño guiados</span><span class="en">Calibration with guided smile and frown</span></li>
+        <li><span class="es">Más participantes y escala de Monk</span><span class="en">More participants and the Monk scale</span></li>
+        <li><span class="es">Comité de ética y consentimiento en la app</span><span class="en">Ethics committee and in-app consent</span></li>
+        <li><span class="es">Impresión del dispositivo «Flor»</span><span class="en">Printing the "Flor" device</span></li></ul></div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap grid g2" style="align-items:start">
+    <div>
+      <img src="assets/logo-transparente-jazminia.png" alt="Jazmín.IA" style="height:46px;width:auto;background:#fff;border-radius:12px;padding:6px 10px;margin-bottom:16px">
+      <h3><span class="es">Trabajo de grado</span><span class="en">Undergraduate thesis</span></h3>
+      <p><b>Yuliana Ituyan Angulo</b> · <span class="es">Ingeniería Mecatrónica</span><span class="en">Mechatronics Engineering</span>, Universidad Autónoma de Occidente, Cali, Colombia.<br>
+      <span class="es">Director</span><span class="en">Advisor</span>: Javier Ferney Castillo García.<br>
+      <span class="es">Póster en el taller WiML de NeurIPS 2026, Sydney.</span><span class="en">Poster at the WiML workshop, NeurIPS 2026, Sydney.</span></p>
+      <p style="font-size:14px;opacity:.85"><span class="es">El proyecto lleva el nombre de mi mamá, Jazmín. 🌼</span><span class="en">The project is named after my mother, Jazmín. 🌼</span></p>
+    </div>
+    <div>
+      <h3><span class="es">Cómo citar</span><span class="en">How to cite</span></h3>
+      <div class="cita">Y. Ituyan Angulo, "Sistema embebido de visión por computador para el análisis de indicadores conductuales y su relación con el rendimiento del usuario," Trabajo de grado, Ing. Mecatrónica, Univ. Autónoma de Occidente, Cali, Colombia, 2026.</div>
+      <p style="font-size:13px;opacity:.8;margin-top:14px"><span class="es">Referencias clave: FACS (Ekman y Friesen, 1978) · EAR (Soukupová y Čech, 2016) · MediaPipe Face Mesh (Kartynnik et al., 2019) · MobileNetV2 (Sandler et al., 2018) · ADMME (Wang et al., 2023) · Py-Feat (Cheong et al., 2023).</span><span class="en">Key references: FACS (Ekman &amp; Friesen, 1978) · EAR (Soukupová &amp; Čech, 2016) · MediaPipe Face Mesh (Kartynnik et al., 2019) · MobileNetV2 (Sandler et al., 2018) · ADMME (Wang et al., 2023) · Py-Feat (Cheong et al., 2023).</span></p>
+    </div>
+  </div>
+</footer>
+
+<dialog id="zoom"><button type="button" aria-label="Cerrar">×</button><img alt=""></dialog>
+<div class="tip" id="tip"></div>
+
+<script>
+(function(){
+  // ---------- idioma ----------
+  const root = document.documentElement;
+  function setLang(l){
+    root.dataset.lang = l; root.lang = l;
+    document.querySelectorAll('.lang button').forEach(b => b.setAttribute('aria-pressed', b.dataset.set === l));
+    try { localStorage.setItem('jazmin_lang', l); } catch(e){}
+    pintarDemo(); pintarRecorrido(); pintarChart();
+  }
+  let ini = 'es';
+  try { ini = new URLSearchParams(location.search).get('lang') || localStorage.getItem('jazmin_lang') || ini; } catch(e){}
+  if (ini !== 'en') ini = 'es';
+  const L = () => root.dataset.lang;
+  document.querySelectorAll('.lang button').forEach(b => b.onclick = () => setLang(b.dataset.set));
+
+  // ---------- matriz LED (patrones reales del sketch) ----------
+  const F = {
+    alerta:  ["0000011100000","0000011100000","0000011100000","0000011100000","0000011100000","0000000000000","0000011100000","0000011100000"],
+    corazon: ["0000000000000","0001101100000","0011111110000","0011111110000","0001111100000","0000111000000","0000010000000","0000000000000"],
+    carita:  ["0000000000000","0001101100000","0001101100000","0000000000000","0010000010000","0011000110000","0001111100000","0000000000000"],
+    apagado: Array(8).fill("0000000000000")
+  };
+  const mz = document.getElementById('matriz');
+  for (let i = 0; i < 104; i++) mz.appendChild(document.createElement('b'));
+  const leds = mz.children;
+  function dibujar(f){ F[f].join('').split('').forEach((c,i) => leds[i].classList.toggle('on', c === '1')); }
+
+  // ---------- estados de la demo ----------
+  const T = {
+    calibrando:{scr:'calibrando', led:'apagado', cejas:0, boca:0, parp:15, brow:'n', mouth:'n', eyes:'o', color:'var(--azul-t)', bg:'var(--azul)',
+      tag:{es:'Calibrando',en:'Calibrating'},
+      t:{es:'10 segundos para conocerte', en:'10 seconds to get to know you'},
+      p:{es:'Con la cara relajada, el sistema registra tu línea base: ancho de boca, posición de cejas, umbral propio de parpadeo y la activación normal de cada AU. Mientras tanto no hay alertas.', en:'With a relaxed face, the system records your baseline: mouth width, brow position, your own blink threshold and the normal activation of each AU. No alerts meanwhile.'},
+      ledt:{es:'Sin alerta mientras calibra', en:'No alert while calibrating'}},
+    neutral:{scr:'bien', led:'bien', cejas:-1, boca:1, parp:16, brow:'n', mouth:'n', eyes:'o', color:'var(--verde)', bg:'var(--menta)',
+      tag:{es:'Todo bien',en:'All good'},
+      t:{es:'Todo está bien', en:'All good'},
+      p:{es:'Cejas y boca están dentro de tu rango neutral y el parpadeo es normal. Jazmín muestra mensajes de ánimo y cuenta tus minutos en calma.', en:'Brows and mouth are within your neutral range and blinking is normal. Jazmín shows encouraging messages and counts your calm minutes.'},
+      ledt:{es:'Corazón y carita feliz, alternados', en:'Heart and smiley, alternating'}},
+    sonrisa:{scr:'bien', led:'bien', cejas:0, boca:18, parp:17, brow:'n', mouth:'s', eyes:'o', color:'var(--verde)', bg:'var(--menta)',
+      tag:{es:'Todo bien',en:'All good'},
+      t:{es:'La sonrisa anula la alerta', en:'A smile cancels the alert'},
+      p:{es:'La boca está un 18 % más ancha que en tu calibración (umbral: 8 %). Aunque el modelo active algunas AUs de tensión al sonreír, la regla de sonrisa las ignora.', en:'The mouth is 18% wider than in your calibration (threshold: 8%). Even if the model fires some tension AUs while smiling, the smile rule ignores them.'},
+      ledt:{es:'Corazón y carita feliz, alternados', en:'Heart and smiley, alternating'}},
+    enojo:{scr:'respiro', led:'alerta', cejas:-11, boca:-2, parp:22, brow:'f', mouth:'a', eyes:'o', color:'var(--durazno-t)', bg:'var(--durazno)',
+      tag:{es:'Tensión',en:'Tension'},
+      t:{es:'Ceño sostenido → tómate un respiro', en:'Sustained frown → take a breath'},
+      p:{es:'Las cejas bajaron un 11 % frente a tu referencia (umbral: 7 %) en más del 40 % de los últimos 6 s. Jazmín propone respirar con un círculo de 4 s al inhalar y 6 s al exhalar. La alerta se enciende entre 1,3 y 3,2 s después del cambio.', en:'The brows dropped 11% against your reference (threshold: 7%) in more than 40% of the last 6 s. Jazmín suggests breathing with a circle: 4 s in, 6 s out. The alert turns on 1.3–3.2 s after the change.'},
+      ledt:{es:'Signo de exclamación', en:'Exclamation mark'}},
+    cansancio:{scr:'cansancio', led:'alerta', cejas:-1, boca:-1, parp:29, brow:'n', mouth:'y', eyes:'b', color:'var(--lila-t)', bg:'var(--lila)',
+      tag:{es:'Cansancio',en:'Tiredness'},
+      t:{es:'Parpadeo alto + bostezos → descansa', en:'High blinking + yawns → rest'},
+      p:{es:'29 parpadeos por minuto (referencia: 24) y al menos dos bostezos en el último minuto. El bostezo exige la boca muy abierta durante 2 s o más, sin ensancharla, para no confundirlo con hablar o reír.', en:'29 blinks per minute (reference: 24) and at least two yawns in the last minute. A yawn needs the mouth wide open for 2 s or more, without widening, so it isn\'t confused with talking or laughing.'},
+      ledt:{es:'Signo de exclamación', en:'Exclamation mark'}},
+    noveo:{scr:'noveo', led:'apagado', cejas:null, boca:null, parp:null, brow:'n', mouth:'n', eyes:'o', color:'var(--beige-t)', bg:'var(--beige)',
+      tag:{es:'No te veo',en:"Can't see you"},
+      t:{es:'Sin rostro durante 3 s', en:'No face for 3 s'},
+      p:{es:'Si MediaPipe no encuentra tu cara durante 3 segundos, Jazmín te pide acomodarte frente a la cámara. No se decide nada sin datos.', en:'If MediaPipe can\'t find your face for 3 seconds, Jazmín asks you to sit in front of the camera. Nothing is decided without data.'},
+      ledt:{es:'Sin cambios hasta volver a verte', en:'No change until it sees you again'}}
+  };
+  const CEJAS = { n:['M60 82 Q75 74 90 80','M110 80 Q125 74 140 82',[60,82,90,80,110,80,140,82]],
+                  f:['M60 78 Q78 76 94 90','M106 90 Q122 76 140 78',[60,78,94,90,106,90,140,78]] };
+  const BOCA = { n:'M82 140 Q100 144 118 140 Q100 146 82 140 Z',
+                 s:'M76 136 Q100 140 124 136 Q100 164 76 136 Z',
+                 a:'M84 144 Q100 136 116 144 Q100 140 84 144 Z',
+                 y:'M88 138 Q100 128 112 138 Q114 160 100 166 Q86 160 88 138 Z' };
+  const BX = { n:[82,140,118,140], s:[76,136,124,136], a:[84,144,116,144], y:[88,140,112,140] };
+  let actual = 'neutral', ledTimer = null, blinkTimer = null, scrFront = 'A';
+  const $ = id => document.getElementById(id);
+  function barra(el, v){
+    const b = el.parentElement, mn = +b.dataset.min, mx = +b.dataset.max;
+    const pos = x => (Math.max(mn, Math.min(mx, x)) - mn) / (mx - mn) * 100;
+    const cero = b.querySelector('.cero'); if (cero) cero.style.left = pos(0) + '%';
+    if (v == null){ el.style.width = '0'; return; }
+    const a = pos(mn < 0 ? 0 : mn), c = pos(v);
+    el.style.left = Math.min(a,c) + '%'; el.style.width = Math.max(1.5, Math.abs(c - a)) + '%';
+  }
+  function umbrales(){
+    document.querySelectorAll('.barra').forEach(b => {
+      const mn = +b.dataset.min, mx = +b.dataset.max, u = parseFloat(b.querySelector('.umb').title.replace('−','-'));
+      b.querySelector('.umb').style.left = ((u - mn) / (mx - mn) * 100) + '%';
+    });
+  }
+  function pintarDemo(){
+    const s = T[actual], l = L();
+    document.querySelectorAll('.exprs button').forEach(b => b.setAttribute('aria-pressed', b.dataset.e === actual));
+    const fmt = (v, suf) => v == null ? '—' : (v > 0 ? '+' : '') + v.toLocaleString(l === 'es' ? 'es-CO' : 'en-US') + suf;
+    $('vCejas').textContent = fmt(s.cejas, ' %'); $('vBoca').textContent = fmt(s.boca, ' %');
+    $('vParp').textContent = s.parp == null ? '—' : s.parp;
+    barra($('bCejas'), s.cejas); barra($('bBoca'), s.boca); barra($('bParp'), s.parp);
+    $('bCejas').style.background = s.cejas != null && s.cejas <= -7 ? 'var(--c-enojo)' : 'var(--verde-2)';
+    $('bBoca').style.background = s.boca != null && s.boca >= 8 ? 'var(--c-sonrisa)' : 'var(--verde-2)';
+    $('bParp').style.background = s.parp != null && s.parp >= 24 ? 'var(--c-sonrisa)' : 'var(--verde-2)';
+    $('estTag').textContent = s.tag[l]; $('estTag').style.background = s.bg; $('estTag').style.color = s.color;
+    $('porque').style.borderLeftColor = s.color;
+    $('porqueT').textContent = s.t[l]; $('porqueP').textContent = s.p[l]; $('ledTxt').textContent = s.ledt[l];
+  }
+  function elegir(e){
+    actual = e; const s = T[e];
+    // cara
+    const c = CEJAS[s.brow];
+    $('cejaI').setAttribute('d', c[0]); $('cejaD').setAttribute('d', c[1]);
+    ['pCI1','pCI2','pCD1','pCD2'].forEach((id,i) => { $(id).setAttribute('cx', c[2][i*2]); $(id).setAttribute('cy', c[2][i*2+1]); });
+    $('boca').setAttribute('d', BOCA[s.mouth]);
+    const bx = BX[s.mouth]; $('pBI').setAttribute('cx', bx[0]); $('pBI').setAttribute('cy', bx[1]); $('pBD').setAttribute('cx', bx[2]); $('pBD').setAttribute('cy', bx[3]);
+    const ry = s.brow === 'f' ? 5 : 7; $('ojoI').setAttribute('ry', ry); $('ojoD').setAttribute('ry', ry);
+    $('noRostro').setAttribute('opacity', e === 'noveo' ? '1' : '0');
+    $('puntos').setAttribute('opacity', e === 'noveo' ? '0' : '1');
+    clearInterval(blinkTimer);
+    if (s.eyes === 'b') blinkTimer = setInterval(() => { ['ojoI','ojoD'].forEach(id => $(id).setAttribute('ry', 1)); setTimeout(() => ['ojoI','ojoD'].forEach(id => $(id).setAttribute('ry', 7)), 160); }, 900);
+    // pantalla (fundido cruzado)
+    const front = $('scr' + scrFront), back = $('scr' + (scrFront === 'A' ? 'B' : 'A'));
+    const src = 'assets/pantalla-' + s.scr + '-jazminia.webp';
+    if (!front.src.endsWith(src)){ back.src = src; back.style.opacity = 1; front.style.opacity = 0; scrFront = scrFront === 'A' ? 'B' : 'A'; }
+    // LED
+    clearInterval(ledTimer);
+    if (s.led === 'bien'){ let k = 0; dibujar('corazon'); ledTimer = setInterval(() => dibujar(++k % 2 ? 'carita' : 'corazon'), 2000); }
+    else dibujar(s.led);
+    pintarDemo();
+  }
+  document.querySelectorAll('.exprs button').forEach(b => b.onclick = () => elegir(b.dataset.e));
+
+  // ---------- recorrido ----------
+  const R = [
+    ['inicio',{es:'1 · Inicio',en:'1 · Start'},{es:'Jazmín se presenta. Un botón para empezar.',en:'Jazmín introduces herself. One button to start.'}],
+    ['nombre',{es:'2 · Tu nombre',en:'2 · Your name'},{es:'Teclado táctil, con la opción «Prefiero no decirlo». El nombre no se guarda.',en:'Touch keyboard with a "Prefer not to say" option. The name is not stored.'}],
+    ['calibrando',{es:'3 · Calibrando',en:'3 · Calibrating'},{es:'10 s con la cara relajada para conocer tu neutral.',en:'10 s with a relaxed face to learn your neutral.'}],
+    ['bien',{es:'4 · Todo bien',en:'4 · All good'},{es:'Mensajes de ánimo que rotan y minutos en calma.',en:'Rotating encouraging messages and calm minutes.'}],
+    ['respiro',{es:'5 · Tensión',en:'5 · Tension'},{es:'Círculo de respiración guiada: 4 s inhala, 6 s exhala.',en:'Guided breathing circle: 4 s in, 6 s out.'}],
+    ['cansancio',{es:'6 · Cansancio',en:'6 · Tiredness'},{es:'Mirar lejos 20 s, parpadear despacio, estirarse.',en:'Look far away for 20 s, blink slowly, stretch.'}],
+    ['noveo',{es:'7 · No te veo',en:"7 · Can't see you"},{es:'Te pide acomodarte frente a la cámara.',en:'Asks you to sit in front of the camera.'}],
+    ['fin',{es:'8 · Resumen',en:'8 · Summary'},{es:'Tiempo en calma, mejor racha, parpadeo y momentos de alerta.',en:'Calm time, best streak, blinking and alert moments.'}],
+    ['salir',{es:'Extra · Salir',en:'Extra · Exit'},{es:'Desde el modo producto se puede ir al panel de investigación o al escritorio.',en:'From product mode you can go to the research panel or the desktop.'}]
+  ];
+  function pintarRecorrido(){
+    const l = L();
+    $('recorrido').innerHTML = R.map(r => '<figure><img loading="lazy" src="assets/pantalla-' + r[0] + '-jazminia.webp" alt="' + r[1][l] + '"><figcaption><b>' + r[1][l] + '</b>' + r[2][l] + '</figcaption></figure>').join('');
+  }
+
+  // ---------- gráfica ----------
+  const SER = [['neutral',{es:'Neutral',en:'Neutral'},'var(--c-neutral)'],['sonrisa',{es:'Sonrisa',en:'Smile'},'var(--c-sonrisa)'],['enojo',{es:'Enojo (ceño)',en:'Anger (frown)'},'var(--c-enojo)']];
+  const G = [
+    [{es:'Validación inicial',en:'Initial validation'},'n = 2',[96.5,92.5,82.5],{es:'global 92 %',en:'overall 92%'}],
+    [{es:'Piloto supervisado',en:'Supervised pilot'},'n = 11',[96,79,57],{es:'global 72 %',en:'overall 72%'}],
+    [{es:'Post-piloto con pausas',en:'Post-pilot with pauses'},'n = 1',[96,97,70],{es:'global 90 %',en:'overall 90%'}]
+  ];
+  const tip = $('tip');
+  function pintarChart(){
+    const l = L(), nf = v => v.toLocaleString(l === 'es' ? 'es-CO' : 'en-US') + ' %';
+    $('leyenda').innerHTML = SER.map(s => '<span><i style="background:' + s[2] + '"></i>' + s[1][l] + '</span>').join('');
+    let h = '';
+    [0,25,50,75,100].forEach(v => h += '<div class="gl" style="bottom:' + v + '%"><span>' + v + '</span></div>');
+    h += '<div class="grupos">' + G.map(g => '<div class="grupo">' + g[2].map((v,i) =>
+      '<div class="bar" tabindex="0" style="height:' + v + '%;background:' + SER[i][2] + '" data-tip="' + g[0][l] + ' · ' + SER[i][1][l] + ': ' + nf(v) + '">' + (i === 2 || g === G[0] ? '<span class="v">' + Math.round(v) + '</span>' : '<span class="v">' + Math.round(v) + '</span>') + '</div>').join('') + '</div>').join('') + '</div>';
+    $('plot').innerHTML = h;
+    $('xl').innerHTML = G.map(g => '<div>' + g[0][l] + '<small>' + g[1] + ' · ' + g[3][l] + '</small></div>').join('');
+    $('tabla').innerHTML = '<tr><th></th>' + SER.map(s => '<th>' + s[1][l] + '</th>').join('') + '<th>Global</th></tr>' +
+      G.map(g => '<tr><td>' + g[0][l] + ' (' + g[1] + ')</td>' + g[2].map(v => '<td>' + nf(v) + '</td>').join('') + '<td>' + g[3][l].replace(/[^0-9 %]/g,'').trim() + '</td></tr>').join('');
+    document.querySelectorAll('.bar').forEach(b => {
+      const show = e => { tip.textContent = b.dataset.tip; tip.style.opacity = 1; const r = b.getBoundingClientRect(); tip.style.left = Math.min(innerWidth - tip.offsetWidth - 8, Math.max(8, r.left + r.width/2 - tip.offsetWidth/2)) + 'px'; tip.style.top = (r.top - tip.offsetHeight - 30) + 'px'; };
+      b.onmouseenter = show; b.onfocus = show; b.onmouseleave = b.onblur = () => tip.style.opacity = 0;
+    });
+  }
+
+  // ---------- zoom de figuras ----------
+  const dlg = $('zoom');
+  document.querySelectorAll('[data-zoom]').forEach(f => f.onclick = () => { dlg.querySelector('img').src = f.querySelector('img').src; dlg.showModal(); });
+  dlg.querySelector('button').onclick = () => dlg.close();
+  dlg.onclick = e => { if (e.target === dlg) dlg.close(); };
+
+  // ---------- aparición al hacer scroll ----------
+  if ('IntersectionObserver' in window){
+    const io = new IntersectionObserver(es => es.forEach(x => { if (x.isIntersecting){ x.target.classList.add('vis'); io.unobserve(x.target); } }), {threshold:.12});
+    document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+  } else document.querySelectorAll('.reveal').forEach(el => el.classList.add('vis'));
+
+  umbrales(); setLang(ini); elegir('neutral');
+})();
+</script>
+</body>
+</html>
