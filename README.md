@@ -14,11 +14,3 @@ Trabajo de grado de **Yuliana Ituyan Angulo** · Ingeniería Mecatrónica · Uni
 - `index.html` — redirección para que GitHub Pages abra la página principal.
 - `assets/` — logo, personaje, pantallas reales del modo producto y láminas técnicas.
 
-## Cómo publicarla en GitHub Pages
-
-1. En github.com, crea un repositorio público nuevo (por ejemplo `jazmin-ia`).
-2. Botón **Add file → Upload files**: arrastra **todo el contenido** de esta carpeta (`index.html`, `index-jazminia.html`, `README.md`, `.nojekyll` y la carpeta `assets`). Clic en **Commit changes**.
-3. Ve a **Settings → Pages**. En *Build and deployment* elige **Deploy from a branch**, rama **main** y carpeta **/ (root)**. Guarda.
-4. En uno o dos minutos la página queda en `https://<tu-usuario>.github.io/jazmin-ia/`.
-
-Para verla en inglés directamente: agrega `?lang=en` al final del enlace.
